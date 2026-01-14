@@ -9,10 +9,10 @@ import {
 } from "lucide-react";
 
 const transactions = [
-  { name: "Netflix Subscription", amount: -15.99, type: "subscription", time: "2 hours ago" },
-  { name: "Salary Deposit", amount: 4500.00, type: "income", time: "Yesterday" },
-  { name: "Amazon Purchase", amount: -89.50, type: "shopping", time: "2 days ago" },
-  { name: "Freelance Payment", amount: 850.00, type: "income", time: "3 days ago" },
+  { name: "Netflix Subscription", amount: -1299, type: "subscription", time: "2 hours ago" },
+  { name: "Salary Deposit", amount: 375000, type: "income", time: "Yesterday" },
+  { name: "Amazon Purchase", amount: -7450, type: "shopping", time: "2 days ago" },
+  { name: "Freelance Payment", amount: 70850, type: "income", time: "3 days ago" },
 ];
 
 export function Dashboard() {
@@ -75,7 +75,7 @@ export function Dashboard() {
                 <div className="flex justify-between items-start mb-6">
                   <div>
                     <p className="text-white/70 text-sm mb-1">Total Balance</p>
-                    <h2 className="font-display text-4xl font-bold">$24,850.00</h2>
+                    <h2 className="font-display text-4xl font-bold">₹20,68,500</h2>
                   </div>
                   <Wallet className="w-10 h-10 opacity-50" />
                 </div>
@@ -86,7 +86,7 @@ export function Dashboard() {
                     </div>
                     <div>
                       <p className="text-white/70 text-xs">Income</p>
-                      <p className="font-semibold">+$5,350</p>
+                      <p className="font-semibold">+₹4,45,850</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -95,7 +95,7 @@ export function Dashboard() {
                     </div>
                     <div>
                       <p className="text-white/70 text-xs">Expenses</p>
-                      <p className="font-semibold">-$1,280</p>
+                      <p className="font-semibold">-₹1,06,560</p>
                     </div>
                   </div>
                 </div>
@@ -181,7 +181,7 @@ export function Dashboard() {
                     <span className={`font-semibold ${
                       tx.amount > 0 ? "text-success" : "text-foreground"
                     }`}>
-                      {tx.amount > 0 ? "+" : ""}${Math.abs(tx.amount).toFixed(2)}
+                      {tx.amount > 0 ? "+" : "-"}₹{Math.abs(tx.amount).toLocaleString('en-IN')}
                     </span>
                   </motion.div>
                 ))}

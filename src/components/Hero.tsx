@@ -127,7 +127,7 @@ export function Hero() {
                   </div>
                   <div>
                     <p className="text-sm text-muted-foreground">Instant Transfers</p>
-                    <p className="text-lg font-bold">$2.4M+ / day</p>
+                    <p className="text-lg font-bold">₹20Cr+ / day</p>
                   </div>
                 </div>
               </motion.div>

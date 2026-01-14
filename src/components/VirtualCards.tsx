@@ -15,13 +15,13 @@ const cardTypes = [
   {
     name: "Basic",
     subtitle: "For everyday use",
-    limit: "$5,000",
+    limit: "₹4,00,000",
     color: "from-slate-700 to-slate-900",
   },
   {
     name: "Premium",
     subtitle: "For professionals",
-    limit: "$25,000",
+    limit: "₹20,00,000",
     color: "from-accent to-info",
     featured: true,
   },
