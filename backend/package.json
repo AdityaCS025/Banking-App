@@ -7,6 +7,7 @@
         "dev": "nodemon src/server.ts",
         "build": "tsc",
         "start": "node dist/server.js",
+        "vercel-build": "tsc",
         "test": "jest --coverage",
         "test:watch": "jest --watch",
         "lint": "eslint src/**/*.ts",
