@@ -1,64 +1,111 @@
-# Welcome to your Lovable project
+# Design Navigator
 
-## Project info
+A full-stack digital banking application with a modern React frontend and secure Node.js backend.
 
-**URL**: https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID
+## Project Structure
 
-## How can I edit this code?
+This is a monorepo containing both frontend and backend applications:
 
-There are several ways of editing your application.
-
-**Use Lovable**
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/REPLACE_WITH_PROJECT_ID) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
-**Use your preferred IDE**
-
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
-
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
-
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
+```
+design-navigator/
+├── frontend/          # React + Vite + TypeScript frontend
+├── backend/           # Node.js + Express + TypeScript backend
+└── README.md
 ```
 
-**Edit a file directly in GitHub**
+## Frontend
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+The frontend is a modern React application built with Vite and TypeScript.
 
-**Use GitHub Codespaces**
+### Technologies Used
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+- **Vite** - Fast build tool and dev server
+- **TypeScript** - Type-safe JavaScript
+- **React** - UI library
+- **shadcn-ui** - Component library
+- **Tailwind CSS** - Utility-first CSS framework
 
-## What technologies are used for this project?
+### Setup & Development
 
-This project is built with:
+```sh
+# Navigate to the frontend directory
+cd frontend
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+# Install dependencies
+npm install
+
+# Start the development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+## Backend
+
+The backend is a secure Node.js API built with Express and TypeScript, using PostgreSQL for data persistence.
+
+### Technologies Used
+
+- **Node.js** - JavaScript runtime
+- **Express** - Web framework
+- **TypeScript** - Type-safe JavaScript
+- **PostgreSQL** - Relational database
+- **Prisma** - Database ORM
+
+### Setup & Development
+
+```sh
+# Navigate to the backend directory
+cd backend
+
+# Install dependencies
+npm install
+
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your database credentials
+
+# Run database migrations
+npm run migrate
+
+# Start the development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+For detailed backend setup instructions, see [backend/README.md](./backend/README.md)
+
+## Development Workflow
+
+1. **Clone the repository**
+   ```sh
+   git clone <YOUR_GIT_URL>
+   cd design-navigator
+   ```
+
+2. **Set up the backend**
+   ```sh
+   cd backend
+   npm install
+   cp .env.example .env
+   # Configure your .env file
+   npm run migrate
+   npm run dev
+   ```
+
+3. **Set up the frontend** (in a new terminal)
+   ```sh
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+4. **Access the application**
+   - Frontend: http://localhost:5173
+   - Backend API: http://localhost:3000
 
 ## How can I deploy this project?
 
