@@ -37,12 +37,12 @@ const transports: winston.transport[] = [
 // Only add file transports if NOT in serverless environment
 if (!isServerless) {
     const logDir = process.env.LOG_FILE_PATH || './logs';
-    
+
     // Create logs directory if it doesn't exist
     if (!fs.existsSync(logDir)) {
         fs.mkdirSync(logDir, { recursive: true });
     }
-    
+
     transports.push(
         new winston.transports.File({
             filename: path.join(logDir, 'combined.log'),
