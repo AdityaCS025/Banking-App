@@ -247,7 +247,7 @@ class CardController {
         try {
             const userId = req.user?.id;
             const { id } = req.params;
-            const { spending_limit, daily_limit } = req.body;
+            const { spending_limit } = req.body;
 
             if (!userId) {
                 res.status(401).json({
@@ -275,7 +275,7 @@ class CardController {
                 return;
             }
 
-            const updatedCard = await CardModel.updateLimits(id, spending_limit, daily_limit);
+            const updatedCard = await CardModel.updateLimits(id, spending_limit);
 
             res.status(200).json({
                 success: true,
