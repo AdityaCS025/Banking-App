@@ -1,4 +1,4 @@
-import { CreditCard, Github, Linkedin, Twitter } from "lucide-react";
+import { CreditCard } from "lucide-react";
 
 const footerLinks = {
   Product: ["Features", "Virtual Cards", "Security", "Pricing"],
@@ -24,26 +24,6 @@ export function Footer() {
               Next-generation digital banking platform with virtual cards, 
               real-time transactions, and AI-powered support.
             </p>
-            <div className="flex gap-4">
-              <a 
-                href="#" 
-                className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-colors"
-              >
-                <Twitter className="w-5 h-5" />
-              </a>
-              <a 
-                href="#" 
-                className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-colors"
-              >
-                <Github className="w-5 h-5" />
-              </a>
-              <a 
-                href="#" 
-                className="w-10 h-10 rounded-full bg-primary-foreground/10 hover:bg-primary-foreground/20 flex items-center justify-center transition-colors"
-              >
-                <Linkedin className="w-5 h-5" />
-              </a>
-            </div>
           </div>
 
           {/* Links */}
@@ -67,12 +47,9 @@ export function Footer() {
         </div>
 
         {/* Bottom */}
-        <div className="pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row justify-between items-center gap-4">
+        <div className="pt-8 border-t border-primary-foreground/10 flex flex-col md:flex-row justify-center items-center gap-4">
           <p className="text-primary-foreground/50 text-sm">
             © 2026 VaultBank. All rights reserved.
-          </p>
-          <p className="text-primary-foreground/50 text-sm">
-            Built with Node.js, Vue.js & PostgreSQL
           </p>
         </div>
       </div>
