@@ -171,13 +171,19 @@ class UserModel {
      * Verify password
      */
     async verifyPassword(email: string, password: string): Promise<User | null> {
+        logger.info(`verifyPassword called for email: ${email}`);
+        
         const user = await this.findByEmail(email, true);
+        
+        logger.info(`User found: ${user ? 'yes' : 'no'}, has password_hash: ${user?.password_hash ? 'yes' : 'no'}`);
 
         if (!user || !user.password_hash) {
+            logger.warn(`Login failed: user not found or no password hash for ${email}`);
             return null;
         }
 
         const isValid = await bcrypt.compare(password, user.password_hash);
+        logger.info(`Password comparison result for ${email}: ${isValid}`);
 
         if (!isValid) {
             return null;
