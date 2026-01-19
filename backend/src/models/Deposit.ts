@@ -5,45 +5,34 @@ export interface Deposit {
     id: string;
     account_id: string;
     user_id: string;
-    deposit_type: 'fixed' | 'recurring';
-    amount: number;
-    tenure_months: number;
+    principal_amount: number;
     interest_rate: number;
+    tenure_months: number;
     maturity_amount: number;
-    monthly_installment?: number;
-    start_date: Date;
     maturity_date: Date;
-    status: 'active' | 'matured' | 'broken';
+    status: 'active' | 'matured' | 'withdrawn';
+    auto_renew: boolean;
     created_at: Date;
-    updated_at: Date;
+    matured_at: Date | null;
 }
 
 export interface CreateDepositData {
     account_id: string;
     user_id: string;
-    deposit_type: 'fixed' | 'recurring';
-    amount: number;
+    principal_amount: number;
     tenure_months: number;
+    auto_renew?: boolean;
 }
 
 /**
  * Interest rates based on tenure (in months)
  */
-const getInterestRate = (tenureMonths: number, depositType: 'fixed' | 'recurring'): number => {
-    if (depositType === 'fixed') {
-        if (tenureMonths >= 60) return 7.5; // 5+ years
-        if (tenureMonths >= 36) return 7.0; // 3-5 years
-        if (tenureMonths >= 24) return 6.5; // 2-3 years
-        if (tenureMonths >= 12) return 6.0; // 1-2 years
-        return 5.5; // 6-12 months
-    } else {
-        // RD rates (slightly lower than FD)
-        if (tenureMonths >= 60) return 7.0;
-        if (tenureMonths >= 36) return 6.5;
-        if (tenureMonths >= 24) return 6.0;
-        if (tenureMonths >= 12) return 5.5;
-        return 5.0;
-    }
+const getInterestRate = (tenureMonths: number): number => {
+    if (tenureMonths >= 60) return 7.5; // 5+ years
+    if (tenureMonths >= 36) return 7.0; // 3-5 years
+    if (tenureMonths >= 24) return 6.5; // 2-3 years
+    if (tenureMonths >= 12) return 6.0; // 1-2 years
+    return 5.5; // 6-12 months
 };
 
 /**
@@ -59,57 +48,32 @@ const calculateFDMaturity = (principal: number, rate: number, months: number): n
     return Math.round(maturity * 100) / 100;
 };
 
-/**
- * Calculate maturity amount for Recurring Deposit
- * Formula: M = P * n * [(1 + r/400) * (n + 1) / 2]
- * Where: P = Monthly installment, n = number of months, r = rate
- */
-const calculateRDMaturity = (monthlyInstallment: number, rate: number, months: number): number => {
-    const r = rate / 100;
-    const maturity = monthlyInstallment * months * (1 + (r / 4) * ((months + 1) / 24));
-    return Math.round(maturity * 100) / 100;
-};
-
 class DepositModel {
     /**
      * Create a new deposit
      */
     async create(depositData: CreateDepositData): Promise<Deposit> {
-        const interestRate = getInterestRate(depositData.tenure_months, depositData.deposit_type);
+        const interestRate = getInterestRate(depositData.tenure_months);
+        const maturityAmount = calculateFDMaturity(depositData.principal_amount, interestRate, depositData.tenure_months);
 
-        let maturityAmount: number;
-        let monthlyInstallment: number | null = null;
-
-        if (depositData.deposit_type === 'fixed') {
-            maturityAmount = calculateFDMaturity(depositData.amount, interestRate, depositData.tenure_months);
-        } else {
-            // For RD, amount is the monthly installment
-            monthlyInstallment = depositData.amount;
-            maturityAmount = calculateRDMaturity(depositData.amount, interestRate, depositData.tenure_months);
-        }
-
-        const startDate = new Date();
         const maturityDate = new Date();
         maturityDate.setMonth(maturityDate.getMonth() + depositData.tenure_months);
 
         const result = await query(
             `INSERT INTO deposits (
-                account_id, user_id, deposit_type, amount, tenure_months,
-                interest_rate, maturity_amount, monthly_installment,
-                start_date, maturity_date
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                account_id, user_id, principal_amount, tenure_months,
+                interest_rate, maturity_amount, maturity_date, auto_renew
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *`,
             [
                 depositData.account_id,
                 depositData.user_id,
-                depositData.deposit_type,
-                depositData.amount,
+                depositData.principal_amount,
                 depositData.tenure_months,
                 interestRate,
                 maturityAmount,
-                monthlyInstallment,
-                startDate,
                 maturityDate,
+                depositData.auto_renew || false,
             ]
         );
 
@@ -137,20 +101,20 @@ class DepositModel {
     }
 
     /**
-     * Break deposit early
+     * Break/withdraw deposit early
      */
     async breakDeposit(id: string): Promise<Deposit | null> {
         const result = await query(
             `UPDATE deposits SET 
-                status = 'broken',
-                updated_at = CURRENT_TIMESTAMP
+                status = 'withdrawn',
+                matured_at = CURRENT_TIMESTAMP
              WHERE id = $1
              RETURNING *`,
             [id]
         );
 
         if (result.rows[0]) {
-            logger.info(`Deposit ${id} broken`);
+            logger.info(`Deposit ${id} withdrawn`);
         }
 
         return result.rows[0] || null;
@@ -159,12 +123,8 @@ class DepositModel {
     /**
      * Calculate interest for a deposit
      */
-    calculateInterest(depositType: 'fixed' | 'recurring', amount: number, rate: number, months: number): number {
-        if (depositType === 'fixed') {
-            return calculateFDMaturity(amount, rate, months) - amount;
-        } else {
-            return calculateRDMaturity(amount, rate, months) - (amount * months);
-        }
+    calculateInterest(principal: number, rate: number, months: number): number {
+        return calculateFDMaturity(principal, rate, months) - principal;
     }
 }
 

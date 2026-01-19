@@ -41,7 +41,7 @@ class DepositController {
     async createDeposit(req: AuthRequest, res: Response): Promise<void> {
         try {
             const userId = req.user?.id;
-            const { account_id, deposit_type, amount, tenure_months } = req.body;
+            const { account_id, amount, tenure_months, auto_renew } = req.body;
 
             if (!userId) {
                 res.status(401).json({
@@ -52,18 +52,10 @@ class DepositController {
             }
 
             // Validate input
-            if (!account_id || !deposit_type || !amount || !tenure_months) {
+            if (!account_id || !amount || !tenure_months) {
                 res.status(400).json({
                     success: false,
-                    message: 'All fields are required',
-                });
-                return;
-            }
-
-            if (!['fixed', 'recurring'].includes(deposit_type)) {
-                res.status(400).json({
-                    success: false,
-                    message: 'Invalid deposit type',
+                    message: 'Account ID, amount, and tenure are required',
                 });
                 return;
             }
@@ -94,28 +86,26 @@ class DepositController {
                 return;
             }
 
-            // Check sufficient balance for FD
-            if (deposit_type === 'fixed') {
-                const accountBalance = typeof account.balance === 'string'
-                    ? parseFloat(account.balance)
-                    : account.balance;
+            // Check sufficient balance
+            const accountBalance = typeof account.balance === 'string'
+                ? parseFloat(account.balance)
+                : account.balance;
 
-                if (accountBalance < amount) {
-                    res.status(400).json({
-                        success: false,
-                        message: 'Insufficient balance',
-                    });
-                    return;
-                }
+            if (accountBalance < amount) {
+                res.status(400).json({
+                    success: false,
+                    message: 'Insufficient balance',
+                });
+                return;
             }
 
             // Create deposit
             const deposit = await DepositModel.create({
                 account_id,
                 user_id: userId,
-                deposit_type,
-                amount,
+                principal_amount: amount,
                 tenure_months,
+                auto_renew: auto_renew || false,
             });
 
             res.status(201).json({
