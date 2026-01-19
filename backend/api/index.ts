@@ -4,7 +4,12 @@ import cors from 'cors';
 const app = express();
 
 // CORS - Must be first!
-const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || ['*'];
+const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [
+    'http://localhost:5173',
+    'http://localhost:3000',
+    'http://localhost:8080',
+    'https://vault-bank-beta.vercel.app'
+];
 
 app.use(cors({
     origin: (origin, callback) => {
@@ -14,6 +19,7 @@ app.use(cors({
         if (allowedOrigins.includes('*') || allowedOrigins.includes(origin)) {
             callback(null, true);
         } else {
+            console.log('CORS blocked origin:', origin);
             callback(null, true); // Allow all for now to debug
         }
     },
@@ -22,8 +28,14 @@ app.use(cors({
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
 }));
 
-// Handle preflight requests
-app.options('*', cors());
+// Handle preflight requests explicitly
+app.options('*', (_req: Request, res: Response) => {
+    res.header('Access-Control-Allow-Origin', 'https://vault-bank-beta.vercel.app');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.sendStatus(200);
+});
 
 // Body parser
 app.use(express.json({ limit: '10mb' }));
