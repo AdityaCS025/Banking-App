@@ -11,7 +11,7 @@
             "src": "/(.*)",
             "dest": "api/index.ts",
             "headers": {
-                "Access-Control-Allow-Origin": "https://vault-bank-beta.vercel.app",
+                "Access-Control-Allow-Origin": "https://vault-bank-silk.vercel.app",
                 "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
                 "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With",
                 "Access-Control-Allow-Credentials": "true"

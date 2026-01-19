@@ -9,7 +9,7 @@ const allowedOrigins = process.env.CORS_ORIGIN?.split(',') || [
     'http://localhost:5173',
     'http://localhost:3000',
     'http://localhost:8080',
-    'https://vault-bank-beta.vercel.app'
+    'https://vault-bank-silk.vercel.app'
 ];
 
 app.use(cors({
@@ -31,7 +31,7 @@ app.use(cors({
 
 // Handle preflight requests explicitly
 app.options('*', (_req: Request, res: Response) => {
-    res.header('Access-Control-Allow-Origin', 'https://vault-bank-beta.vercel.app');
+    res.header('Access-Control-Allow-Origin', 'https://vault-bank-silk.vercel.app');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     res.header('Access-Control-Allow-Credentials', 'true');
