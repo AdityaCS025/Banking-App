@@ -1,6 +1,7 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 
+// Force rebuild - updated models for virtual_cards and deposits tables
 const app = express();
 
 // CORS - Must be first!
