@@ -19,7 +19,7 @@ export const apiLimiter = rateLimit({
  */
 export const loginLimiter = rateLimit({
     windowMs: parseInt(process.env.LOGIN_RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
-    max: parseInt(process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS || '5'),
+    max: parseInt(process.env.LOGIN_RATE_LIMIT_MAX_ATTEMPTS || '50'), // Increased for testing
     message: {
         success: false,
         message: 'Too many login attempts, please try again after 15 minutes.',
