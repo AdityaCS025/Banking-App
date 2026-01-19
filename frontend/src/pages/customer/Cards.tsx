@@ -277,13 +277,13 @@ export default function Cards() {
                                                     <div>
                                                         <p className="text-white/70 text-xs mb-1">Cardholder</p>
                                                         <p className="font-semibold uppercase text-sm">
-                                                            {selectedCard.cardholder_name}
+                                                            {selectedCard.card_holder_name}
                                                         </p>
                                                     </div>
                                                     <div>
                                                         <p className="text-white/70 text-xs mb-1">Valid Thru</p>
                                                         <p className="font-mono">
-                                                            {formatDate(selectedCard.valid_thru)}
+                                                            {formatDate(selectedCard.expiry_date)}
                                                         </p>
                                                     </div>
                                                     <div className="text-right">
@@ -370,16 +370,16 @@ export default function Cards() {
                                 <div className="grid md:grid-cols-2 gap-4">
                                     <div className="p-4 rounded-xl bg-card border border-border">
                                         <p className="text-sm text-muted-foreground mb-1">
-                                            Daily Limit
+                                            Current Spent
                                         </p>
                                         <p className="font-display text-2xl font-bold">
-                                            ₹{parseFloat(selectedCard.daily_limit).toLocaleString("en-IN")}
+                                            ₹{parseFloat(selectedCard.current_spent || 0).toLocaleString("en-IN")}
                                         </p>
                                     </div>
 
                                     <div className="p-4 rounded-xl bg-card border border-border">
                                         <p className="text-sm text-muted-foreground mb-1">
-                                            Monthly Limit
+                                            Spending Limit
                                         </p>
                                         <p className="font-display text-2xl font-bold">
                                             ₹{parseFloat(selectedCard.spending_limit).toLocaleString("en-IN")}

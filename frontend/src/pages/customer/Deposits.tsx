@@ -215,8 +215,8 @@ export default function Deposits() {
     }
 
     const activeDeposits = deposits.filter(d => d.status === 'active');
-    const totalInvested = activeDeposits.reduce((sum, d) => sum + parseFloat(d.amount), 0);
-    const totalMaturity = activeDeposits.reduce((sum, d) => sum + parseFloat(d.maturity_amount), 0);
+    const totalInvested = activeDeposits.reduce((sum, d) => sum + parseFloat(d.principal_amount || 0), 0);
+    const totalMaturity = activeDeposits.reduce((sum, d) => sum + parseFloat(d.maturity_amount || 0), 0);
 
     return (
         <CustomerLayout>
@@ -322,14 +322,12 @@ export default function Deposits() {
                                 <div className="flex items-start justify-between">
                                     <div className="flex-1 min-w-0">
                                         <div className="flex flex-wrap items-center gap-2 sm:gap-3 mb-3">
-                                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 ${deposit.deposit_type === 'fixed' ? 'bg-primary/20' : 'bg-accent/20'
-                                                }`}>
-                                                <PiggyBank className={`w-5 h-5 sm:w-6 sm:h-6 ${deposit.deposit_type === 'fixed' ? 'text-primary' : 'text-accent'
-                                                    }`} />
+                                            <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center flex-shrink-0 bg-primary/20`}>
+                                                <PiggyBank className={`w-5 h-5 sm:w-6 sm:h-6 text-primary`} />
                                             </div>
                                             <div className="min-w-0 flex-1">
                                                 <h4 className="font-semibold capitalize text-sm sm:text-base">
-                                                    {deposit.deposit_type} Deposit
+                                                    Deposit
                                                 </h4>
                                                 <p className="text-xs sm:text-sm text-muted-foreground">
                                                     {deposit.tenure_months}mo @ {deposit.interest_rate}%
@@ -346,10 +344,10 @@ export default function Deposits() {
                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4 mt-3 sm:mt-4">
                                             <div>
                                                 <p className="text-xs text-muted-foreground mb-1">
-                                                    {deposit.deposit_type === 'fixed' ? 'Principal' : 'Monthly'}
+                                                    Principal
                                                 </p>
                                                 <p className="font-semibold text-sm sm:text-base">
-                                                    ₹{parseFloat(deposit.amount).toLocaleString("en-IN")}
+                                                    ₹{parseFloat(deposit.principal_amount || 0).toLocaleString("en-IN")}
                                                 </p>
                                             </div>
                                             <div>
