@@ -96,26 +96,30 @@ export default function Signup() {
             return false;
         }
 
-        // Validate PAN format (ABCDE1234F)
-        const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
-        if (!panRegex.test(formData.panCard)) {
-            toast({
-                variant: "destructive",
-                title: "Invalid PAN",
-                description: "Please enter a valid PAN card number (e.g., ABCDE1234F).",
-            });
-            return false;
+        // Validate PAN format (ABCDE1234F) - optional field
+        if (formData.panCard) {
+            const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]{1}$/;
+            if (!panRegex.test(formData.panCard)) {
+                toast({
+                    variant: "destructive",
+                    title: "Invalid PAN",
+                    description: "Please enter a valid PAN card number (e.g., ABCDE1234F).",
+                });
+                return false;
+            }
         }
 
-        // Validate Aadhaar format (12 digits)
-        const aadhaarRegex = /^[0-9]{12}$/;
-        if (!aadhaarRegex.test(formData.aadhaarCard)) {
-            toast({
-                variant: "destructive",
-                title: "Invalid Aadhaar",
-                description: "Please enter a valid 12-digit Aadhaar number.",
-            });
-            return false;
+        // Validate Aadhaar format (12 digits) - optional field
+        if (formData.aadhaarCard) {
+            const aadhaarRegex = /^[0-9]{12}$/;
+            if (!aadhaarRegex.test(formData.aadhaarCard)) {
+                toast({
+                    variant: "destructive",
+                    title: "Invalid Aadhaar",
+                    description: "Please enter a valid 12-digit Aadhaar number.",
+                });
+                return false;
+            }
         }
 
         return true;
@@ -192,26 +196,34 @@ export default function Signup() {
         setIsLoading(true);
 
         try {
+            const requestBody: Record<string, string> = {
+                full_name: formData.fullName,
+                email: formData.email,
+                phone: formData.phone,
+                password: formData.password,
+                date_of_birth: formData.dateOfBirth,
+                address: JSON.stringify({
+                    street: formData.address,
+                    city: formData.city,
+                    state: formData.state,
+                    pincode: formData.pincode,
+                }),
+            };
+
+            // Only include PAN and Aadhaar if provided
+            if (formData.panCard) {
+                requestBody.pan_number = formData.panCard;
+            }
+            if (formData.aadhaarCard) {
+                requestBody.aadhaar_number = formData.aadhaarCard;
+            }
+
             const response = await fetch(API_ENDPOINTS.AUTH.REGISTER, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    full_name: formData.fullName,
-                    email: formData.email,
-                    phone: formData.phone,
-                    password: formData.password,
-                    date_of_birth: formData.dateOfBirth,
-                    pan_number: formData.panCard,
-                    aadhaar_number: formData.aadhaarCard,
-                    address: JSON.stringify({
-                        street: formData.address,
-                        city: formData.city,
-                        state: formData.state,
-                        pincode: formData.pincode,
-                    }),
-                }),
+                body: JSON.stringify(requestBody),
             });
 
             const data = await response.json();
@@ -351,7 +363,7 @@ export default function Signup() {
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="panCard">PAN Card Number</Label>
+                                            <Label htmlFor="panCard">PAN Card Number <span className="text-muted-foreground text-sm">(Optional)</span></Label>
                                             <Input
                                                 id="panCard"
                                                 name="panCard"
@@ -361,12 +373,11 @@ export default function Signup() {
                                                 onChange={handleChange}
                                                 maxLength={10}
                                                 className="uppercase"
-                                                required
                                             />
                                         </div>
 
                                         <div className="space-y-2">
-                                            <Label htmlFor="aadhaarCard">Aadhaar Number</Label>
+                                            <Label htmlFor="aadhaarCard">Aadhaar Number <span className="text-muted-foreground text-sm">(Optional)</span></Label>
                                             <Input
                                                 id="aadhaarCard"
                                                 name="aadhaarCard"
@@ -375,7 +386,6 @@ export default function Signup() {
                                                 value={formData.aadhaarCard}
                                                 onChange={handleChange}
                                                 maxLength={12}
-                                                required
                                             />
                                         </div>
                                     </div>
