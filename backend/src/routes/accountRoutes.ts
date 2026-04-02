@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import accountController from '../controllers/accountController';
 import { authenticate } from '../middlewares/auth';
-import { body, param } from 'express-validator';
+import { body, param, query } from 'express-validator';
 import { validate } from '../middlewares/validation';
 
 const router = Router();
@@ -21,7 +21,15 @@ router.get('/', accountController.getMyAccounts);
  * @desc    Get all accounts (banker/admin only)
  * @access  Private (Banker/Admin)
  */
-router.get('/all', accountController.getAllAccounts);
+router.get(
+    '/all',
+    [
+        query('page').optional().isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+        query('limit').optional().isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+    ],
+    validate,
+    accountController.getAllAccounts
+);
 
 /**
  * @route   POST /api/accounts
@@ -44,13 +52,29 @@ router.post(
  * @desc    Verify account by account number (for transfers)
  * @access  Private
  */
-router.get('/verify/:accountNumber', accountController.verifyAccount);
+router.get(
+    '/verify/:accountNumber',
+    [
+        param('accountNumber')
+            .isLength({ min: 16, max: 16 })
+            .withMessage('Account number must be 16 digits')
+            .isNumeric()
+            .withMessage('Account number must be numeric'),
+    ],
+    validate,
+    accountController.verifyAccount
+);
 
 /**
  * @route   GET /api/accounts/:id
  * @desc    Get account by ID
  * @access  Private
  */
-router.get('/:id', accountController.getAccountById);
+router.get(
+    '/:id',
+    [param('id').isUUID().withMessage('Invalid account ID')],
+    validate,
+    accountController.getAccountById
+);
 
 export default router;

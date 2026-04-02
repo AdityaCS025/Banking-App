@@ -1,8 +1,9 @@
 import { Router } from 'express';
 import transactionController from '../controllers/transactionController';
 import { authenticate } from '../middlewares/auth';
-import { query as queryValidator } from 'express-validator';
+import { query as queryValidator, body, param } from 'express-validator';
 import { validate } from '../middlewares/validation';
+import { transactionLimiter } from '../middlewares/rateLimiter';
 
 const router = Router();
 
@@ -37,27 +38,63 @@ router.get('/stats', transactionController.getStats);
  * @desc    Get transaction by ID
  * @access  Private
  */
-router.get('/:id', transactionController.getTransactionById);
+router.get(
+    '/:id',
+    [param('id').isUUID().withMessage('Invalid transaction ID')],
+    validate,
+    transactionController.getTransactionById
+);
 
 /**
  * @route   POST /api/transactions/deposit
  * @desc    Deposit money into account
  * @access  Private
  */
-router.post('/deposit', transactionController.deposit);
+router.post(
+    '/deposit',
+    transactionLimiter,
+    [
+        body('account_id').isUUID().withMessage('Invalid account ID'),
+        body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
+        body('description').optional().isLength({ max: 500 }).withMessage('Description must not exceed 500 characters'),
+    ],
+    validate,
+    transactionController.deposit
+);
 
 /**
  * @route   POST /api/transactions/withdraw
  * @desc    Withdraw money from account
  * @access  Private
  */
-router.post('/withdraw', transactionController.withdraw);
+router.post(
+    '/withdraw',
+    transactionLimiter,
+    [
+        body('account_id').isUUID().withMessage('Invalid account ID'),
+        body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
+        body('description').optional().isLength({ max: 500 }).withMessage('Description must not exceed 500 characters'),
+    ],
+    validate,
+    transactionController.withdraw
+);
 
 /**
  * @route   POST /api/transactions/transfer
  * @desc    Transfer money between accounts
  * @access  Private
  */
-router.post('/transfer', transactionController.transfer);
+router.post(
+    '/transfer',
+    transactionLimiter,
+    [
+        body('from_account_id').isUUID().withMessage('Invalid source account ID'),
+        body('to_account_id').isUUID().withMessage('Invalid destination account ID'),
+        body('amount').isFloat({ min: 0.01 }).withMessage('Amount must be greater than 0'),
+        body('description').optional().isLength({ max: 500 }).withMessage('Description must not exceed 500 characters'),
+    ],
+    validate,
+    transactionController.transfer
+);
 
 export default router;

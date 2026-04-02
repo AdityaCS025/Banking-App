@@ -21,7 +21,7 @@ export function Footer() {
               <span className="font-display font-bold text-xl">VaultBank</span>
             </div>
             <p className="text-primary-foreground/70 mb-6 max-w-xs">
-              Next-generation digital banking platform with virtual cards, 
+              Next-generation digital banking platform with virtual cards,
               real-time transactions, and AI-powered support.
             </p>
           </div>
@@ -33,8 +33,8 @@ export function Footer() {
               <ul className="space-y-3">
                 {links.map((link) => (
                   <li key={link}>
-                    <a 
-                      href="#" 
+                    <a
+                      href="#"
                       className="text-primary-foreground/70 hover:text-primary-foreground transition-colors"
                     >
                       {link}

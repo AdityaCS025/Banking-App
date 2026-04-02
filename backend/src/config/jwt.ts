@@ -2,9 +2,17 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
+const requireEnv = (key: string): string => {
+    const value = process.env[key];
+    if (!value || value.trim().length === 0) {
+        throw new Error(`Missing required environment variable: ${key}`);
+    }
+    return value;
+};
+
 export const jwtConfig = {
-    accessSecret: process.env.JWT_ACCESS_SECRET || 'your-access-secret-change-this',
-    refreshSecret: process.env.JWT_REFRESH_SECRET || 'your-refresh-secret-change-this',
+    accessSecret: requireEnv('JWT_ACCESS_SECRET'),
+    refreshSecret: requireEnv('JWT_REFRESH_SECRET'),
     accessExpiry: process.env.JWT_ACCESS_EXPIRY || '15m',
     refreshExpiry: process.env.JWT_REFRESH_EXPIRY || '7d',
 };

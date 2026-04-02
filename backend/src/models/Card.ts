@@ -1,4 +1,5 @@
 import { query, getClient } from '../config/database';
+import crypto from 'crypto';
 import logger from '../utils/logger';
 
 export interface Card {
@@ -35,7 +36,7 @@ function generateCardNumber(): string {
     let cardNumber = prefix;
 
     for (let i = 0; i < 15; i++) {
-        cardNumber += Math.floor(Math.random() * 10);
+        cardNumber += crypto.randomInt(0, 10).toString();
     }
 
     return cardNumber;
@@ -45,7 +46,7 @@ function generateCardNumber(): string {
  * Generate random CVV (3 digits)
  */
 function generateCVV(): string {
-    return Math.floor(100 + Math.random() * 900).toString();
+    return crypto.randomInt(100, 1000).toString();
 }
 
 class CardModel {

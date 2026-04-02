@@ -137,11 +137,10 @@ class AuthController {
 
             const otp = await authService.generateOTP(email, purpose || 'verification');
 
-            // In production, send OTP via email
-            // For development, return OTP in response
-            const responseData = process.env.NODE_ENV === 'development'
-                ? { otp } // Only in development
-                : {};
+            // Only echo OTP when explicitly enabled for local development
+            const allowOtpEcho = process.env.NODE_ENV === 'development'
+                && process.env.ALLOW_DEBUG_OTP === 'true';
+            const responseData = allowOtpEcho ? { otp } : {};
 
             res.status(200).json({
                 success: true,

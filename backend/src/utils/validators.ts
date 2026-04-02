@@ -13,12 +13,20 @@ export const validateEmail = (): ValidationChain => {
 /**
  * Password validation
  */
-export const validatePassword = (): ValidationChain => {
-    return body('password')
+const passwordPolicy = (field: string): ValidationChain => {
+    return body(field)
         .isLength({ min: 8 })
         .withMessage('Password must be at least 8 characters long')
         .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/)
         .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character');
+};
+
+export const validatePassword = (): ValidationChain => {
+    return passwordPolicy('password');
+};
+
+export const validatePasswordField = (field: string): ValidationChain => {
+    return passwordPolicy(field);
 };
 
 /**

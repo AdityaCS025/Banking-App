@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import chatbotController from '../controllers/chatbotController';
 import { validate } from '../middlewares/validation';
+import { chatbotLimiter } from '../middlewares/rateLimiter';
 import { body } from 'express-validator';
 
 const router = Router();
@@ -12,6 +13,7 @@ const router = Router();
  */
 router.post(
     '/chat',
+    chatbotLimiter,
     [
         body('message')
             .notEmpty()

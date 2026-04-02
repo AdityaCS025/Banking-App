@@ -5,6 +5,22 @@ import AccountModel from '../models/Account';
 import logger from '../utils/logger';
 
 class CardController {
+    private maskCard(card: any) {
+        if (!card) {
+            return card;
+        }
+
+        const cardNumber = typeof card.card_number === 'string' ? card.card_number : '';
+        const maskedNumber = cardNumber
+            ? cardNumber.replace(/\d(?=\d{4})/g, '*')
+            : cardNumber;
+
+        return {
+            ...card,
+            card_number: maskedNumber,
+            cvv: undefined,
+        };
+    }
     /**
      * Get all cards for current user
      */
@@ -24,7 +40,7 @@ class CardController {
 
             res.status(200).json({
                 success: true,
-                data: { cards },
+                data: { cards: cards.map((card) => this.maskCard(card)) },
             });
         } catch (error: any) {
             logger.error('Get cards error:', error);
@@ -81,7 +97,7 @@ class CardController {
             res.status(201).json({
                 success: true,
                 message: 'Card created successfully',
-                data: { card },
+                data: { card: this.maskCard(card) },
             });
         } catch (error: any) {
             logger.error('Create card error:', error);
@@ -129,7 +145,7 @@ class CardController {
 
             res.status(200).json({
                 success: true,
-                data: { card },
+                data: { card: this.maskCard(card) },
             });
         } catch (error: any) {
             logger.error('Get card error:', error);
@@ -179,7 +195,7 @@ class CardController {
             res.status(200).json({
                 success: true,
                 message: 'Card frozen successfully',
-                data: { card: updatedCard },
+                data: { card: this.maskCard(updatedCard) },
             });
         } catch (error: any) {
             logger.error('Freeze card error:', error);
@@ -229,7 +245,7 @@ class CardController {
             res.status(200).json({
                 success: true,
                 message: 'Card unfrozen successfully',
-                data: { card: updatedCard },
+                data: { card: this.maskCard(updatedCard) },
             });
         } catch (error: any) {
             logger.error('Unfreeze card error:', error);
@@ -280,7 +296,7 @@ class CardController {
             res.status(200).json({
                 success: true,
                 message: 'Card limits updated successfully',
-                data: { card: updatedCard },
+                data: { card: this.maskCard(updatedCard) },
             });
         } catch (error: any) {
             logger.error('Update limits error:', error);

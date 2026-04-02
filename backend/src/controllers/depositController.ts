@@ -115,11 +115,6 @@ class DepositController {
             });
         } catch (error: any) {
             logger.error('Create deposit error:', error);
-            logger.error('Error details:', {
-                message: error.message,
-                stack: error.stack,
-                body: req.body,
-            });
             res.status(500).json({
                 success: false,
                 message: error.message || 'Failed to create deposit',

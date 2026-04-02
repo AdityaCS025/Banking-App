@@ -44,6 +44,20 @@ export const otpLimiter = rateLimit({
 });
 
 /**
+ * Refresh token rate limiter
+ */
+export const refreshTokenLimiter = rateLimit({
+    windowMs: parseInt(process.env.REFRESH_RATE_LIMIT_WINDOW_MS || '900000'), // 15 minutes
+    max: parseInt(process.env.REFRESH_RATE_LIMIT_MAX_ATTEMPTS || '30'),
+    message: {
+        success: false,
+        message: 'Too many refresh attempts, please try again later.',
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+/**
  * Transaction rate limiter
  */
 export const transactionLimiter = rateLimit({
@@ -52,6 +66,20 @@ export const transactionLimiter = rateLimit({
     message: {
         success: false,
         message: 'Too many transactions, please slow down.',
+    },
+    standardHeaders: true,
+    legacyHeaders: false,
+});
+
+/**
+ * Chatbot rate limiter
+ */
+export const chatbotLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 20,
+    message: {
+        success: false,
+        message: 'Too many chatbot requests, please slow down.',
     },
     standardHeaders: true,
     legacyHeaders: false,
