@@ -16,11 +16,12 @@ router.use(authenticate);
  */
 router.get('/', cardController.getMyCards);
 
-/**
- * @route   POST /api/cards
- * @desc    Create a new card
+body('card_type').isIn(['debit', 'credit']).withMessage('Invalid card type'),
+ * @route   POST / api / cards
+    * @desc    Create a new card
+body('daily_limit').optional().isFloat({ min: 0.01 }).withMessage('Invalid daily limit'),
  * @access  Private
- */
+    */
 router.post(
     '/',
     [
@@ -79,6 +80,7 @@ router.put(
     [
         param('id').isUUID().withMessage('Invalid card ID'),
         body('spending_limit').isFloat({ min: 0.01 }).withMessage('Invalid spending limit'),
+        body('daily_limit').optional().isFloat({ min: 0.01 }).withMessage('Invalid daily limit'),
     ],
     validate,
     cardController.updateLimits

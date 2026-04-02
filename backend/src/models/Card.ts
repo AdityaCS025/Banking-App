@@ -7,14 +7,14 @@ export interface Card {
     account_id: string;
     user_id: string;
     card_number: string;
-    card_type: 'basic' | 'premium' | 'elite';
-    card_holder_name: string;
-    status: 'pending' | 'active' | 'frozen' | 'expired' | 'cancelled';
+    card_type: 'debit' | 'credit';
+    cardholder_name: string;
+    status: 'active' | 'frozen' | 'blocked';
     spending_limit: number;
-    current_spent: number;
-    expiry_date: Date;
+    daily_limit: number;
+    valid_from: Date;
+    valid_thru: Date;
     cvv: string;
-    issued_at: Date | null;
     created_at: Date;
     updated_at: Date;
 }
@@ -22,9 +22,10 @@ export interface Card {
 export interface CreateCardData {
     account_id: string;
     user_id: string;
-    card_type: 'basic' | 'premium' | 'elite';
-    card_holder_name: string;
+    card_type: 'debit' | 'credit';
+    cardholder_name: string;
     spending_limit?: number;
+    daily_limit?: number;
 }
 
 /**
@@ -56,24 +57,27 @@ class CardModel {
     async create(cardData: CreateCardData): Promise<Card> {
         const cardNumber = generateCardNumber();
         const cvv = generateCVV();
-        const expiryDate = new Date();
-        expiryDate.setFullYear(expiryDate.getFullYear() + 3); // Valid for 3 years
+        const validFrom = new Date();
+        const validThru = new Date();
+        validThru.setFullYear(validThru.getFullYear() + 3); // Valid for 3 years
 
         const result = await query(
-            `INSERT INTO virtual_cards (
-                account_id, user_id, card_number, card_type, card_holder_name,
-                spending_limit, cvv, expiry_date
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            `INSERT INTO cards (
+                account_id, user_id, card_number, card_type, cardholder_name,
+                spending_limit, daily_limit, valid_from, valid_thru, cvv
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING *`,
             [
                 cardData.account_id,
                 cardData.user_id,
                 cardNumber,
-                cardData.card_type || 'basic',
-                cardData.card_holder_name,
-                cardData.spending_limit || 50000,
+                cardData.card_type || 'debit',
+                cardData.cardholder_name,
+                cardData.spending_limit ?? 50000,
+                cardData.daily_limit ?? 10000,
+                validFrom,
+                validThru,
                 cvv,
-                expiryDate,
             ]
         );
 
@@ -86,7 +90,7 @@ class CardModel {
      */
     async findByUserId(userId: string): Promise<Card[]> {
         const result = await query(
-            `SELECT * FROM virtual_cards WHERE user_id = $1 ORDER BY created_at DESC`,
+            `SELECT * FROM cards WHERE user_id = $1 ORDER BY created_at DESC`,
             [userId]
         );
         return result.rows;
@@ -96,7 +100,7 @@ class CardModel {
      * Find card by ID
      */
     async findById(id: string): Promise<Card | null> {
-        const result = await query(`SELECT * FROM virtual_cards WHERE id = $1`, [id]);
+        const result = await query(`SELECT * FROM cards WHERE id = $1`, [id]);
         return result.rows[0] || null;
     }
 
@@ -105,7 +109,7 @@ class CardModel {
      */
     async findByAccountId(accountId: string): Promise<Card[]> {
         const result = await query(
-            `SELECT * FROM virtual_cards WHERE account_id = $1 ORDER BY created_at DESC`,
+            `SELECT * FROM cards WHERE account_id = $1 ORDER BY created_at DESC`,
             [accountId]
         );
         return result.rows;
@@ -114,9 +118,9 @@ class CardModel {
     /**
      * Update card status (freeze/unfreeze/block)
      */
-    async updateStatus(id: string, status: 'pending' | 'active' | 'frozen' | 'expired' | 'cancelled'): Promise<Card | null> {
+    async updateStatus(id: string, status: 'active' | 'frozen' | 'blocked'): Promise<Card | null> {
         const result = await query(
-            `UPDATE virtual_cards SET status = $1, updated_at = CURRENT_TIMESTAMP
+            `UPDATE cards SET status = $1, updated_at = CURRENT_TIMESTAMP
              WHERE id = $2
              RETURNING *`,
             [status, id]
@@ -134,15 +138,26 @@ class CardModel {
      */
     async updateLimits(
         id: string,
-        spendingLimit: number
+        spendingLimit: number,
+        dailyLimit?: number
     ): Promise<Card | null> {
+        const values: any[] = [spendingLimit];
+        let sets = 'spending_limit = $1';
+        let whereParam = 2;
+
+        if (dailyLimit !== undefined) {
+            values.push(dailyLimit);
+            sets += ', daily_limit = $2';
+            whereParam = 3;
+        }
+
+        values.push(id);
+
         const result = await query(
-            `UPDATE virtual_cards SET 
-                spending_limit = $1,
-                updated_at = CURRENT_TIMESTAMP
-             WHERE id = $2
+            `UPDATE cards SET ${sets}, updated_at = CURRENT_TIMESTAMP
+             WHERE id = $${whereParam}
              RETURNING *`,
-            [spendingLimit, id]
+            values
         );
 
         if (result.rows[0]) {
@@ -156,7 +171,7 @@ class CardModel {
      * Delete card
      */
     async delete(id: string): Promise<boolean> {
-        const result = await query(`DELETE FROM virtual_cards WHERE id = $1`, [id]);
+        const result = await query(`DELETE FROM cards WHERE id = $1`, [id]);
 
         if (result.rowCount && result.rowCount > 0) {
             logger.info(`Card ${id} deleted`);

@@ -57,7 +57,7 @@ class CardController {
     async createCard(req: AuthRequest, res: Response): Promise<void> {
         try {
             const userId = req.user?.id;
-            const { account_id, card_type, cardholder_name, spending_limit } = req.body;
+            const { account_id, card_type, cardholder_name, spending_limit, daily_limit } = req.body;
 
             if (!userId) {
                 res.status(401).json({
@@ -77,21 +77,14 @@ class CardController {
                 return;
             }
 
-            // Map frontend card types to schema enum
-            let mappedCardType: 'basic' | 'premium' | 'elite' = 'basic';
-            if (card_type === 'credit' || card_type === 'premium') {
-                mappedCardType = 'premium';
-            } else if (card_type === 'elite') {
-                mappedCardType = 'elite';
-            }
-
             // Create card
             const card = await CardModel.create({
                 account_id,
                 user_id: userId,
-                card_type: mappedCardType,
-                card_holder_name: cardholder_name,
+                card_type,
+                cardholder_name,
                 spending_limit,
+                daily_limit,
             });
 
             res.status(201).json({
@@ -291,7 +284,7 @@ class CardController {
                 return;
             }
 
-            const updatedCard = await CardModel.updateLimits(id, spending_limit);
+            const updatedCard = await CardModel.updateLimits(id, spending_limit, daily_limit);
 
             res.status(200).json({
                 success: true,

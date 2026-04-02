@@ -121,8 +121,8 @@ export const validatePagination = (): ValidationChain[] => {
  */
 export const validateCardType = (): ValidationChain => {
     return body('card_type')
-        .isIn(['basic', 'premium', 'elite'])
-        .withMessage('Card type must be basic, premium, or elite');
+        .isIn(['debit', 'credit'])
+        .withMessage('Card type must be debit or credit');
 };
 
 /**

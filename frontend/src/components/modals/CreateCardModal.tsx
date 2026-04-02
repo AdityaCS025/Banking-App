@@ -52,8 +52,11 @@ export function CreateCardModal({ open, onOpenChange, onSuccess }: CreateCardMod
             });
             const profileData = await profileResponse.json();
             if (profileResponse.ok) {
-                const fullName = `${profileData.data.user.first_name} ${profileData.data.user.last_name}`;
-                setCardholderName(fullName);
+                const fullName = profileData.data.user.full_name
+                    || `${profileData.data.user.first_name || ''} ${profileData.data.user.last_name || ''}`.trim();
+                if (fullName) {
+                    setCardholderName(fullName);
+                }
             }
         } catch (error) {
             console.error('Fetch error:', error);
