@@ -256,7 +256,7 @@ class CardController {
         try {
             const userId = req.user?.id;
             const { id } = req.params;
-            const { spending_limit } = req.body;
+            const { spending_limit, daily_limit } = req.body;
 
             if (!userId) {
                 res.status(401).json({

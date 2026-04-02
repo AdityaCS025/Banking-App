@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import { Router, Request, Response } from 'express';
 import cardController from '../controllers/cardController';
 import { authenticate } from '../middlewares/auth';
 import { validate } from '../middlewares/validation';
@@ -14,24 +14,24 @@ router.use(authenticate);
  * @desc    Get all cards for current user
  * @access  Private
  */
-router.get('/', cardController.getMyCards);
+router.get('/', (req: Request, res: Response) => cardController.getMyCards(req as any, res));
 
-body('card_type').isIn(['debit', 'credit']).withMessage('Invalid card type'),
- * @route   POST / api / cards
-    * @desc    Create a new card
-body('daily_limit').optional().isFloat({ min: 0.01 }).withMessage('Invalid daily limit'),
+/**
+ * @route   POST /api/cards
+ * @desc    Create a new card
  * @access  Private
-    */
+ */
 router.post(
     '/',
     [
         body('account_id').isUUID().withMessage('Invalid account ID'),
-        body('card_type').isIn(['basic', 'premium', 'elite', 'credit']).withMessage('Invalid card type'),
+        body('card_type').isIn(['debit', 'credit', 'basic', 'premium', 'elite']).withMessage('Invalid card type'),
         body('cardholder_name').trim().isLength({ min: 2, max: 100 }).withMessage('Cardholder name is required'),
         body('spending_limit').optional().isFloat({ min: 0.01 }).withMessage('Invalid spending limit'),
+        body('daily_limit').optional().isFloat({ min: 0.01 }).withMessage('Invalid daily limit'),
     ],
     validate,
-    cardController.createCard
+    (req: Request, res: Response) => cardController.createCard(req as any, res)
 );
 
 /**
@@ -43,7 +43,7 @@ router.get(
     '/:id',
     [param('id').isUUID().withMessage('Invalid card ID')],
     validate,
-    cardController.getCardById
+    (req: Request, res: Response) => cardController.getCardById(req as any, res)
 );
 
 /**
@@ -55,7 +55,7 @@ router.put(
     '/:id/freeze',
     [param('id').isUUID().withMessage('Invalid card ID')],
     validate,
-    cardController.freezeCard
+    (req: Request, res: Response) => cardController.freezeCard(req as any, res)
 );
 
 /**
@@ -67,7 +67,7 @@ router.put(
     '/:id/unfreeze',
     [param('id').isUUID().withMessage('Invalid card ID')],
     validate,
-    cardController.unfreezeCard
+    (req: Request, res: Response) => cardController.unfreezeCard(req as any, res)
 );
 
 /**
@@ -83,7 +83,7 @@ router.put(
         body('daily_limit').optional().isFloat({ min: 0.01 }).withMessage('Invalid daily limit'),
     ],
     validate,
-    cardController.updateLimits
+    (req: Request, res: Response) => cardController.updateLimits(req as any, res)
 );
 
 /**
@@ -95,7 +95,8 @@ router.delete(
     '/:id',
     [param('id').isUUID().withMessage('Invalid card ID')],
     validate,
-    cardController.deleteCard
+    (req: Request, res: Response) => cardController.deleteCard(req as any, res)
 );
 
 export default router;
+
