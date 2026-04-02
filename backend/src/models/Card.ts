@@ -7,13 +7,16 @@ export interface Card {
     account_id: string;
     user_id: string;
     card_number: string;
-    card_type: 'debit' | 'credit';
-    cardholder_name: string;
-    status: 'active' | 'frozen' | 'blocked';
+    card_type: string;
+    cardholder_name?: string;
+    card_holder_name?: string;
+    status: string;
     spending_limit: number;
-    daily_limit: number;
-    valid_from: Date;
-    valid_thru: Date;
+    daily_limit?: number;
+    valid_from?: Date;
+    valid_thru?: Date;
+    expiry_date?: Date;
+    current_spent?: number;
     cvv: string;
     created_at: Date;
     updated_at: Date;
@@ -51,33 +54,71 @@ function generateCVV(): string {
 }
 
 class CardModel {
+    private getTableName(): 'cards' | 'virtual_cards' {
+        const table = process.env.CARD_TABLE || 'virtual_cards';
+        return table === 'cards' ? 'cards' : 'virtual_cards';
+    }
+
+    private mapCardType(cardType: 'debit' | 'credit', table: 'cards' | 'virtual_cards'): string {
+        if (table === 'cards') {
+            return cardType;
+        }
+
+        return cardType === 'credit' ? 'premium' : 'basic';
+    }
+
     /**
      * Create a new card
      */
     async create(cardData: CreateCardData): Promise<Card> {
+        const table = this.getTableName();
         const cardNumber = generateCardNumber();
         const cvv = generateCVV();
         const validFrom = new Date();
         const validThru = new Date();
         validThru.setFullYear(validThru.getFullYear() + 3); // Valid for 3 years
+        const mappedCardType = this.mapCardType(cardData.card_type, table);
+
+        if (table === 'cards') {
+            const result = await query(
+                `INSERT INTO cards (
+                    account_id, user_id, card_number, card_type, cardholder_name,
+                    spending_limit, daily_limit, valid_from, valid_thru, cvv
+                ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+                RETURNING *`,
+                [
+                    cardData.account_id,
+                    cardData.user_id,
+                    cardNumber,
+                    mappedCardType,
+                    cardData.cardholder_name,
+                    cardData.spending_limit ?? 50000,
+                    cardData.daily_limit ?? 10000,
+                    validFrom,
+                    validThru,
+                    cvv,
+                ]
+            );
+
+            logger.info(`Card created: ${cardNumber} for user ${cardData.user_id}`);
+            return result.rows[0];
+        }
 
         const result = await query(
-            `INSERT INTO cards (
-                account_id, user_id, card_number, card_type, cardholder_name,
-                spending_limit, daily_limit, valid_from, valid_thru, cvv
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            `INSERT INTO virtual_cards (
+                account_id, user_id, card_number, card_type, card_holder_name,
+                spending_limit, cvv, expiry_date
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
             RETURNING *`,
             [
                 cardData.account_id,
                 cardData.user_id,
                 cardNumber,
-                cardData.card_type || 'debit',
+                mappedCardType,
                 cardData.cardholder_name,
                 cardData.spending_limit ?? 50000,
-                cardData.daily_limit ?? 10000,
-                validFrom,
-                validThru,
                 cvv,
+                validThru,
             ]
         );
 
@@ -89,8 +130,9 @@ class CardModel {
      * Find all cards for a user
      */
     async findByUserId(userId: string): Promise<Card[]> {
+        const table = this.getTableName();
         const result = await query(
-            `SELECT * FROM cards WHERE user_id = $1 ORDER BY created_at DESC`,
+            `SELECT * FROM ${table} WHERE user_id = $1 ORDER BY created_at DESC`,
             [userId]
         );
         return result.rows;
@@ -100,7 +142,8 @@ class CardModel {
      * Find card by ID
      */
     async findById(id: string): Promise<Card | null> {
-        const result = await query(`SELECT * FROM cards WHERE id = $1`, [id]);
+        const table = this.getTableName();
+        const result = await query(`SELECT * FROM ${table} WHERE id = $1`, [id]);
         return result.rows[0] || null;
     }
 
@@ -108,8 +151,9 @@ class CardModel {
      * Find cards by account ID
      */
     async findByAccountId(accountId: string): Promise<Card[]> {
+        const table = this.getTableName();
         const result = await query(
-            `SELECT * FROM cards WHERE account_id = $1 ORDER BY created_at DESC`,
+            `SELECT * FROM ${table} WHERE account_id = $1 ORDER BY created_at DESC`,
             [accountId]
         );
         return result.rows;
@@ -119,8 +163,9 @@ class CardModel {
      * Update card status (freeze/unfreeze/block)
      */
     async updateStatus(id: string, status: 'active' | 'frozen' | 'blocked'): Promise<Card | null> {
+        const table = this.getTableName();
         const result = await query(
-            `UPDATE cards SET status = $1, updated_at = CURRENT_TIMESTAMP
+            `UPDATE ${table} SET status = $1, updated_at = CURRENT_TIMESTAMP
              WHERE id = $2
              RETURNING *`,
             [status, id]
@@ -141,6 +186,23 @@ class CardModel {
         spendingLimit: number,
         dailyLimit?: number
     ): Promise<Card | null> {
+        const table = this.getTableName();
+
+        if (table === 'virtual_cards') {
+            const result = await query(
+                `UPDATE virtual_cards SET spending_limit = $1, updated_at = CURRENT_TIMESTAMP
+                 WHERE id = $2
+                 RETURNING *`,
+                [spendingLimit, id]
+            );
+
+            if (result.rows[0]) {
+                logger.info(`Card ${id} limit updated`);
+            }
+
+            return result.rows[0] || null;
+        }
+
         const values: any[] = [spendingLimit];
         let sets = 'spending_limit = $1';
         let whereParam = 2;
@@ -171,7 +233,8 @@ class CardModel {
      * Delete card
      */
     async delete(id: string): Promise<boolean> {
-        const result = await query(`DELETE FROM cards WHERE id = $1`, [id]);
+        const table = this.getTableName();
+        const result = await query(`DELETE FROM ${table} WHERE id = $1`, [id]);
 
         if (result.rowCount && result.rowCount > 0) {
             logger.info(`Card ${id} deleted`);
